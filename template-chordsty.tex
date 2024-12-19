@@ -13,16 +13,93 @@
 % 
 % The Current Maintainer of this work is Douglas Joziel Bitencourt Freitas.
 %
-% This work consists of the files template-chordsty.tex
+% This work consists of the files template-chordsty.tex and qrcode.tex,
 % and the derived file chordsty.sty.
 
-\documentclass{article}
+\documentclass[
+    a4paper,
+    12pt
+]{article}
 
 % Pacotes
-\usepackage{chordsty}
+\usepackage[
+    fontepadrao=fourier,
+    corcifra=FF4500,
+    esquerda=2.5cm,
+    direita=2.5cm,
+    superior=2.5cm,
+    inferior=2.5cm,
+    logomarca=true,
+    numerotrastes=4
+]{chordsty}
 
+% Informações
+\titulo{GRANDE É O SENHOR}
+\artista{Eli Soares}
+
+% Extras
+\linkmusica{https://www.youtube.com/watch?v=oaedoTm7xpQ}
+\referencias{
+    Sl 48.1--2\\
+    1Co 15.57\\
+    Sl 95.6\\
+    Jr 31.3\\
+    Is 40.28
+}
+\palavraschave{
+    Louvor\\
+    Poder\\
+    Confiança\\
+    Gratidão\\
+    Devoção
+}
+
+% Documento
 \begin{document}
 
-chordsty
+% QR-Code, referências e palavras-chave
+\extras
+
+% Cifra
+\begin{songs}{}
+    \beginsong{\showtitulo}[by={\showartista}]
+    
+    \transpose{0}
+    %\preferflats
+    %\prefersharps
+    
+    \meter{4}{4}
+    \beginverse
+    \parte{INTRODUÇÃO} \esp\dica{\musQuarter~=~120 \esp\itshape Com melodia de \caixa{FRASE}}
+    \nolyrics
+    \barra 
+    %\hspace*{0.235em}\barra
+    \endverse
+    
+    \beginverse
+    \parte{A}
+    Grande é o Senhor e mui digno de Louvor
+    Na cidade do nosso Deus, Seu santo monte
+    Alegria de toda terra
+    \endverse
+    
+    \beginverse
+    \parte{B}
+    Grande é o Senhor em quem nós temos a vitória
+    E que nos ajuda contra o inimigo
+    Por isso diante dEle nos prostramos
+    \endverse
+    
+    \beginchorus
+    \tab \parte{REFRÃO}
+    \tab Queremos o teu nome engrandecer 
+    \tab E agradecer-Te por Tua obra em nossas vidas
+    \tab Confiamos em Teu infinito amor,
+    \tab Pois só Tu és o Deus eterno
+    \tab Sobre toda terra e céu
+    \endchorus
+    
+    \endsong
+\end{songs}
 
 \end{document}

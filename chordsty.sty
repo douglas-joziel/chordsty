@@ -13,11 +13,248 @@
 % 
 % The Current Maintainer of this work is Douglas Joziel Bitencourt Freitas.
 %
-% This work consists of the files template-chordsty.tex
+% This work consists of the files template-chordsty.tex and qrcode.tex,
 % and the derived file chordsty.sty.
 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{chordsty}[2024/12/18 Chordsty LaTeX package]
 
+% Opções
+\RequirePackage{kvoptions}
+\SetupKeyvalOptions{
+    family=chordsty,
+    prefix=chordsty@,
+    setkeys=\kvsetkeys
+}
+\DeclareStringOption[times]{fontepadrao}
+\DeclareStringOption[000000]{corcifra}
+\DeclareStringOption[1.5in]{esquerda}
+\DeclareStringOption[1.5in]{direita}
+\DeclareStringOption[1.5in]{superior}
+\DeclareStringOption[1.5in]{inferior}
+\DeclareStringOption[false]{logomarca}
+\DeclareStringOption[5]{numerotrastes}
+\ProcessKeyvalOptions*
+
 % Pacotes
+\RequirePackage[brazil]{babel}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{\chordsty@fontepadrao}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[document]{ragged2e}
+\RequirePackage[
+    left=\chordsty@esquerda,
+    right=\chordsty@direita,
+    top=\chordsty@superior,
+    bottom=\chordsty@inferior
+]{geometry}
+\RequirePackage[dvipsnames]{xcolor}
+\RequirePackage[
+    hidelinks,
+    bookmarks=false,
+    pdfstartview={XYZ null null 0.75}
+]{hyperref}
+\RequirePackage[absolute]{textpos}
 \RequirePackage[chorded]{songs}
+\RequirePackage[bigger]{musicography}
+\RequirePackage{
+    fancyhdr,
+    lastpage,
+    graphicx,
+    xstring,
+    qrcode,
+    calc,
+    xparse,
+    tikz
+}
+
+% Pasta de figuras
+\graphicspath{{./figuras/}}
+
+% Layout da página
+\pagestyle{fancy}
+\fancyhead[L]{\showtitulo}
+\fancyhead[R]{\thepage{\scriptsize/\pageref{LastPage}}}
+\fancyfoot[C]{\IfEq{\chordsty@logomarca}{true}{\includegraphics[height=1.3cm]{logo}}}
+
+\songcolumns{1} % Quantidade de colunas
+\nosongnumbers % Remove numeração das músicas
+\noversenumbers % Remove numeração dos versos
+\setlength{\cbarwidth}{0pt} % Remove barra vertical do refrão
+\setlength{\sbarheight}{0pt} % Remove barra horizontal superior/inferior
+\setlength{\parindent}{0pt} % Remove indentação dos parágrafos	
+
+\textblockorigin{\chordsty@direita}{\chordsty@superior}
+
+% Cores
+\definecolor{Cifra}{HTML}{\chordsty@corcifra}
+
+% Fontes
+\renewcommand{\stitlefont}{\normalfont\Large\bfseries} % Fonte do título
+\renewcommand{\chorusfont}{\normalfont\itshape} % Fonte do refrão
+\renewcommand{\printchord}[1]{\normalfont\normalsize\bfseries\color{Cifra}#1} % Fonte da cifra
+\renewcommand{\meterfont}{\normalfont\small} % Fonte do compasso
+
+% Espaçamento
+\renewcommand\makeprelude{%
+	\resettitles
+	{\Large\bfseries\songtitle\par
+		\nexttitle\foreachtitle{(\songtitle)\par}}%
+	\extendprelude
+} % Ajuste no título e artista
+
+\renewcommand{\clineparams}{\baselineskip=12pt\lineskiplimit=1pt\lineskip=1pt}
+\baselineadj=6pt plus 1pt minus 0pt
+\versesep=10pt plus 2pt minus 2pt
+
+% Símbolos
+\renewcommand{\sharpsymbol}{\raisebox{0.3ex}{\scalebox{0.85}{\musSharp}}} % Sustenido
+\renewcommand{\flatsymbol}{\raisebox{-0.05ex}{\musFlat}} % Bemol
+\newcommand{\doublesharpsymbol}{\raisebox{0.1ex}{\scalebox{1.25}{\musDoubleSharp}}} % Dobrado sustenido
+\newcommand{\doubleflatsymbol}{\raisebox{-0.05ex}{\musDoubleFlat}} % Dobrado bemol
+
+\gdef\ss{\sharpsymbol} % Atalho para sustenido
+\gdef\fs{\flatsymbol} % Atalho para bemol
+\gdef\dss{\doublesharpsymbol} % Atalho para dobrado sustenido
+\gdef\dfs{\doubleflatsymbol} % Atalho para dobrado bemol
+
+\ExplSyntaxOn
+\NewDocumentCommand \liaison { O{0.15mm} O{20} m m }
+{
+	\begin{tikzpicture}[remember~picture, overlay]
+		\draw ([yshift=-#1]#3.south) to[bend~right=#2] ([yshift=-#1]#4.south);
+	\end{tikzpicture}
+}
+\ExplSyntaxOff
+\newcommand{\ligadura}[2]{\tikzmarknode{A}{#1}\tikzmarknode{B}{\esp #2} \liaison{A}{B}} % Ligadura
+
+\newcommand{\barra}{\measurebar\esp\hspace*{0.2em}} % Barra simples
+\newcommand{\barradupla}{\measurebar\hspace*{0.12em}\measurebar\esp\hspace*{0.2em}} % Barra dupla
+\newcommand{\barrafinal}{%
+    \measurebar\hspace*{0.12em}%
+    \measurebar\hspace*{0em}%
+    \measurebar\hspace*{0em}%
+    \measurebar\esp\hspace*{0.2em}
+} % Barra final
+
+% Comandos adicionais
+\newcommand{\titulo}[1]{\gdef\mytitulo{#1}} % Título da música
+\newcommand{\showtitulo}{\ifdefined\mytitulo\MakeUppercase{\mytitulo}\else TÍTULO DA MÚSICA\fi}
+
+\newcommand{\artista}[1]{\gdef\myartista{#1}} % Artista da música
+\newcommand{\showartista}{\normalfont\normalsize\ifdefined\myartista\myartista\else Nome do artista\fi}
+
+\newcommand{\linkmusica}[1]{\gdef\mylinkmusica{#1}} % Link da música
+\newcommand{\showlinkmusica}{\mylinkmusica}
+
+\newcommand{\referencias}[1]{\gdef\myreferencias{#1}} % Referências bíblicas
+\newcommand{\showreferencias}{\myreferencias}
+
+\newcommand{\palavraschave}[1]{\gdef\mypalavraschave{#1}} % Palavras-chave
+\newcommand{\showpalavraschave}{\mypalavraschave}
+
+\newcommand{\extras}{%
+    \begin{textblock*}{2.5cm}(\textwidth-\chordsty@direita, 0pt)
+        \ifdefined\mylinkmusica
+            \href{A}{\qrcode[hyperlink, height=2.5cm]{B}}
+            \vspace*{2pt}
+        \else
+            \vspace*{-1.9ex}
+        \fi
+        
+        \ifdefined\myreferencias
+            \begin{flushright}
+                \scriptsize\itshape\bfseries Referências:\par
+                \normalfont\scriptsize\itshape\showreferencias
+            \end{flushright}
+        \fi
+        
+        \ifdefined\mypalavraschave
+            \begin{flushright}
+                \scriptsize\itshape\bfseries Palavras-chave:\par
+                \normalfont\scriptsize\itshape\showpalavraschave
+            \end{flushright}
+        \fi
+    \end{textblock*}
+} % Coluna lateral (direita) com informações adicionais
+
+\newcommand{\tab}{\hspace*{1.25cm}} % Tabulação para refrão
+\newcommand{\esp}{\hspace*{0.4em}} % Espaço adicional entre elementos
+
+\newcommand{\fns}[1]{\raisebox{0.275ex}{\scalebox{0.8}{#1}}} % Atalho para \footnotesize
+\newcommand{\alt}[2]{\raisebox{-0.1ex}{\scalebox{0.8}{\musFig{#1 #2}}}} % Atalho para \musFig
+\newcommand{\bxo}[1]{\scalebox{0.8}{\transposehere{/#1}}} % Atalho para nota no baixo
+
+\newcommand{\parte}[1]{\framebox{\normalfont\bfseries #1}\vspace*{2pt}} % Marca de ensaio
+\newcommand{\dica}[1]{\raisebox{0.2ex}{\scriptsize #1}} % Dica, anotações, instruções etc.
+\newcommand{\caixa}[1]{\framebox{\normalfont\bfseries #1}} % Caixa de texto
+
+\newcommand{\casa}[1]{%
+    \[\color{Black}\framebox{\normalfont\bfseries\notrans{#1}}\hspace*{0.1em}]
+} % 1ª casa, 2ª casa etc.
+\newcommand{\casabranca}[1]{%
+    \[\color{White}\fcolorbox{White}{White}{\normalfont\bfseries\notrans{#1}}\hspace*{0.1em}]
+} % 1ª casa, 2ª casa etc. (em branco)
+\newcommand{\volta}[1]{%
+    \[\color{Black}\raisebox{0.2ex}{\normalfont\scriptsize\itshape\notrans{#1}}]
+} % Marca de volta
+
+% Desenha o diagrama do acorde
+\newcommand{\acorde}[6]{%
+    \begin{tikzpicture}[scale=.29]
+        \gdef\posicao{#2}
+        \gdef\notas{#3}
+        \gdef\pestana{#4}
+        \gdef\inicio{#5}	
+        
+        \ifnum \chordsty@numerotrastes > 4
+            \def\nts{0}
+        \else
+            \def\nts{2}
+        \fi
+        
+        % Nome
+        \node at (2.5*1.25, 11.5) {\bfseries #1};
+        
+        % Diagrama
+        \draw[] (0,\nts) rectangle (5*1.25,10);
+        \foreach \k in {1,...,4}{
+            \draw[] (\k*1.25,\nts) -- (\k*1.25,10);
+            \draw[] (0,\k*2) -- (5*1.25,\k*2);
+        }
+        
+        \ifnum \pestana > 0
+            \draw[fill] (7.5-1.25*\inicio,11-2*\pestana) circle (.3);
+            \draw[fill] (5*1.25,11-2*\pestana) circle (.3);
+            \draw[fill] (7.5-1.25*\inicio,11-2*\pestana-.3) rectangle (5*1.25,11-2*\pestana+.3);
+        \fi	
+        
+        % Posição nas cordas
+        \foreach \t [count=\s] in \posicao {
+            \def\x{.275}
+            \def\corda{\s*1.25-1.25}
+            \def\traste{11-2*\t}
+            \ifnum \t < 1
+                \ifnum \t < 0
+                    \draw[] (\corda-\x,10.5-\x) -- (\corda+\x,10.5+\x);
+                    \draw[] (\corda-\x,10.5+\x) -- (\corda+\x,10.5-\x);				
+                \else
+                    \draw[] (\corda, 10.5) circle (.3);
+                \fi
+            \else
+                \draw[fill] (\s*1.25-1.25,\traste) circle (.3);
+            \fi
+        }
+        
+        % Notas
+        \foreach \n [count=\s] in \notas {
+            \node at (\s*1.25-1.25,\nts-.75) {\scalebox{0.6}{\normalfont \n}};
+        }
+        
+        % Casa
+        \node[right] at (5*1.25+.3,9) {\scalebox{0.6}{\normalfont #6}};
+        
+        % Margem
+        \draw[draw] (0-1.75,\nts-2) rectangle (5*1.25+1.75, 10+2.25);
+    \end{tikzpicture}
+}
