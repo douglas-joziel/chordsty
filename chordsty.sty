@@ -65,7 +65,8 @@
     qrcode,
     calc,
     xparse,
-    tikz
+    tikz,
+    tabularx
 }
 
 % Pasta de figuras
@@ -83,6 +84,7 @@
 \setlength{\cbarwidth}{0pt} % Remove barra vertical do refrão
 \setlength{\sbarheight}{0pt} % Remove barra horizontal superior/inferior
 \setlength{\parindent}{0pt} % Remove indentação dos parágrafos	
+\setlength{\tabcolsep}{0.4em} % Remove espaço interno das tabelas
 
 \textblockorigin{\chordsty@direita}{\chordsty@superior}
 
@@ -128,13 +130,13 @@
 \ExplSyntaxOff
 \newcommand{\ligadura}[2]{\tikzmarknode{A}{#1}\tikzmarknode{B}{\esp #2} \liaison{A}{B}} % Ligadura
 
-\newcommand{\barra}{\measurebar\esp\hspace*{0.2em}} % Barra simples
-\newcommand{\barradupla}{\measurebar\hspace*{0.12em}\measurebar\esp\hspace*{0.2em}} % Barra dupla
+\newcommand{\barra}{\measurebar\esp} % Barra simples
+\newcommand{\barradupla}{\measurebar\hspace*{0.12em}\measurebar\esp} % Barra dupla
 \newcommand{\barrafinal}{%
     \measurebar\hspace*{0.12em}%
     \measurebar\hspace*{0em}%
     \measurebar\hspace*{0em}%
-    \measurebar\esp\hspace*{0.2em}
+    \measurebar\esp
 } % Barra final
 
 % Comandos adicionais
@@ -156,7 +158,7 @@
 \newcommand{\extras}{%
     \begin{textblock*}{2.5cm}(\textwidth-\chordsty@direita, 0pt)
         \ifdefined\mylinkmusica
-            \href{A}{\qrcode[hyperlink, height=2.5cm]{B}}
+            \href{\showlinkmusica}{\qrcode[hyperlink, height=2.5cm]{\showlinkmusica}}
             \vspace*{2pt}
         \else
             \vspace*{-1.9ex}
@@ -186,18 +188,20 @@
 \newcommand{\bxo}[1]{\scalebox{0.8}{\transposehere{/#1}}} % Atalho para nota no baixo
 
 \newcommand{\parte}[1]{\framebox{\normalfont\bfseries #1}\vspace*{2pt}} % Marca de ensaio
-\newcommand{\dica}[1]{\raisebox{0.2ex}{\scriptsize #1}} % Dica, anotações, instruções etc.
-\newcommand{\caixa}[1]{\framebox{\normalfont\bfseries #1}} % Caixa de texto
+\newcommand{\caixa}[1]{~\framebox{\normalfont\bfseries #1}~} % Caixa de texto
 
-\newcommand{\casa}[1]{%
-    \[\color{Black}\framebox{\normalfont\bfseries\notrans{#1}}\hspace*{0.1em}]
-} % 1ª casa, 2ª casa etc.
-\newcommand{\casabranca}[1]{%
-    \[\color{White}\fcolorbox{White}{White}{\normalfont\bfseries\notrans{#1}}\hspace*{0.1em}]
-} % 1ª casa, 2ª casa etc. (em branco)
-\newcommand{\volta}[1]{%
-    \[\color{Black}\raisebox{0.2ex}{\normalfont\scriptsize\itshape\notrans{#1}}]
-} % Marca de volta
+\newcommand{\casa}[1]{\[\color{Black}\framebox{\normalfont\bfseries\notrans{#1}}\hspace*{0.1em}]} % 1ª casa, 2ª casa etc.
+\newcommand{\casabranca}[1]{\[\color{White}\fcolorbox{White}{White}{\normalfont\bfseries\notrans{#1}}\hspace*{0.1em}]} % 1ª casa, 2ª casa etc. (em branco)
+
+\newcommand{\obs}[2][1]{%
+    \ifnum #1 = 1
+        \[\color{Black}\raisebox{0.2ex}{\normalfont\scriptsize\itshape\notrans{#2}}]
+    \else
+        \raisebox{0.2ex}{\scriptsize #2} 
+    \fi
+} % Dica, anotações, instruções, volta etc.
+
+\newcommand{\dinamica}[1]{\itshape ({\bfseries #1})}
 
 % Desenha o diagrama do acorde
 \newcommand{\acorde}[6]{%
@@ -214,7 +218,7 @@
         \fi
         
         % Nome
-        \node at (2.5*1.25, 11.5) {\bfseries #1};
+        \node at (2.5*1.25, 11.85) {\bfseries #1};
         
         % Diagrama
         \draw[] (0,\nts) rectangle (5*1.25,10);
@@ -236,10 +240,10 @@
             \def\traste{11-2*\t}
             \ifnum \t < 1
                 \ifnum \t < 0
-                    \draw[] (\corda-\x,10.5-\x) -- (\corda+\x,10.5+\x);
-                    \draw[] (\corda-\x,10.5+\x) -- (\corda+\x,10.5-\x);				
+                    \draw[] (\corda-\x,10.55-\x) -- (\corda+\x,10.55+\x);
+                    \draw[] (\corda-\x,10.55+\x) -- (\corda+\x,10.55-\x);				
                 \else
-                    \draw[] (\corda, 10.5) circle (.3);
+                    \draw[] (\corda, 10.55) circle (.3);
                 \fi
             \else
                 \draw[fill] (\s*1.25-1.25,\traste) circle (.3);
@@ -248,13 +252,13 @@
         
         % Notas
         \foreach \n [count=\s] in \notas {
-            \node at (\s*1.25-1.25,\nts-.75) {\scalebox{0.6}{\normalfont \n}};
+            \node at (\s*1.25-1.25,\nts-.7) {\scalebox{0.6}{\normalfont \n}};
         }
         
         % Casa
         \node[right] at (5*1.25+.3,9) {\scalebox{0.6}{\normalfont #6}};
         
         % Margem
-        \draw[draw] (0-1.75,\nts-2) rectangle (5*1.25+1.75, 10+2.25);
+        \draw[draw=none] (0-1.75,\nts-2) rectangle (5*1.25+1.75, 10+2.75);
     \end{tikzpicture}
 }
